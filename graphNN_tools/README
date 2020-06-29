@@ -1,0 +1,20 @@
+
+This suit of codes is written by Dr. Obaidur Rahaman
+
+How to install:
+
+1. Make a build directory
+
+mkdir build
+
+2. Go to the build directory
+
+cd build
+
+3. Run the following command:
+
+cmake ..
+
+4. Run the following command:
+
+make

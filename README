@@ -1,0 +1,29 @@
+
+This suit of codes is written by Dr. Obaidur Rahaman
+
+Deep learning architecture. We used python and PyTorch programming languages to construct the deep learning framework. We combined the different features (GNN, MBTR and MD) for deep learning the targets.
+GNNs were built using the message passing neural net-work4 (NNConv) as implemented in PyTorch. The number of convolution layers in GNN is hyperparameter of the model. However, we limited this to 3 in order to reduce the number of hyperparameters and thus complexity of the model. Gated Recurrent Unit (GRU)33 was used as the up-date function for GNN.
+Similarly, both the number of neurons and number of hid-den layers processing MBTR and MD features, as well as the final features are hyper parameters of the model. In or-der to reduce the total number of hyperparameters, we fixed the number of hidden layers to 2. However, the number of neurons in the layer is kept as a hyperparameter. The number of neurons was gradually reduced in the more advanced layers, constructing a funnel like structure.
+ 
+A batch size of 64 was used to balance between efficiency and accuracy. AdamW with amsgrad turned on was used as the optimizer. Applying a slight weight decay (=0.005) was useful in achieving regularization and preventing over-fitting. The learning rate was kept as a hyperparameter of the model. A scheduler was used to modify the learning rate during the training. The training of the model was per-formed using GPU. 
+The OE62 dataset was randomly split into 70%, 15% and 15% for training, validation and test, respectively. The number of epochs required to achieve satisfactory accuracy was dependent on the type of the target.
+
+INSTALLATION
+
+Follow the instructions in the README file inside graphNN_tools folder
+
+PREPROCESS
+
+Go to train/models folder
+
+Execute the following commands
+
+python3 1-preprocess_GNN.py
+
+Optionally for MBTR feature generation
+python3 2-preprocess_MBTR.py
+
+TRAIN
+
+python3 3-run.py
+ 
