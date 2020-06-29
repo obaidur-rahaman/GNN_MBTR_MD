@@ -1,5 +1,5 @@
 
-This suit of codes is written by Dr. Obaidur Rahaman
+These codes are written by Dr. Obaidur Rahaman
 
 Deep learning architecture. We used python and PyTorch programming languages to construct the deep learning framework. We combined the different features (GNN, MBTR and MD) for deep learning the targets.
 GNNs were built using the message passing neural net-work4 (NNConv) as implemented in PyTorch. The number of convolution layers in GNN is hyperparameter of the model. However, we limited this to 3 in order to reduce the number of hyperparameters and thus complexity of the model. Gated Recurrent Unit (GRU)33 was used as the up-date function for GNN.
