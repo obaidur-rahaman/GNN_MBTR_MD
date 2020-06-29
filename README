@@ -12,6 +12,13 @@ INSTALLATION
 
 Follow the instructions in the README file inside graphNN_tools folder
 
+CREATE DATAFRAME
+
+Create a dataframe containing the SMILES codes of the molecules with column name "smiles".
+If available, provide the XYZ coordinates with column name "xyz".
+Store the targets in seperate columns (more than one if available). List the column names of the targets in /train/data/target_terms_all.txt file. 
+Store the dataframe as df.csv in /train/data folder.
+
 PREPROCESS
 
 Go to train/models folder
