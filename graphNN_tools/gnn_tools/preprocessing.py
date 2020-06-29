@@ -1,9 +1,5 @@
 import pandas as pd
 import numpy as np
-from pymatgen.io.cif import CifParser
-from pymatgen.analysis.graphs import StructureGraph
-import pymatgen.analysis.local_env as locenv
-import pymatgen.io.xyz as pyxyz
 import subprocess
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
@@ -16,8 +12,6 @@ from sklearn.utils import shuffle
 import pickle 
 import subprocess
 import gnn_tools as gnn
-import tracemalloc
-import gc
 import time
 import re
 
@@ -72,83 +66,6 @@ def get_molecules(dataframe):
     dataframe_rejected.to_csv("../data/df_rejected.csv")      
     #Draw.MolsToGridImage(mol_list, molsPerRow=4, legends = legends)
     return(dataframe_reduced, mol_list, legends)
-
-def get_mol_pymatgen(dataframe, nbrStruc):
-    
-    for i in range(nbrStruc):
-        refcode = dataframe.iloc[i,0]
-        if (refcode != "QAPHUK"):
-            print(refcode)
-            parser = CifParser("../data/cif/{}.cif".format(refcode))
-            structure = parser.get_structures()[0]
-            sg = StructureGraph.with_local_env_strategy(structure, locenv.JmolNN())
-            my_molecules = sg.get_subgraphs_as_molecules()
-            #molecule = MoleculeGraph.with_local_env_strategy(my_molecules,locenv.JmolNN())
-            #print(molecule)
-            #crystool.view(my_molecules)
-            my_molecules = pyxyz.XYZ(my_molecules)
-            #print(my_molecules)
-            pyxyz.XYZ.write_file(my_molecules,"../data/xyz_pymatgen/{}.xyz".format(refcode))
-            
-def get_smile(dataframe):
-    nbrStruc = dataframe.shape[0]
-    for i in range(nbrStruc):
-        refcode = dataframe.iloc[i,0]
-        #print(refcode, "========================")
-        f=open("../data/can/{}.can".format(refcode), "r")
-        smile = f.read().split()
-        smile = smile[0]
-        # But let's first make sure there is only one molecule present    
-        smile = smile.split(".")[0]
-        
-        dataframe.at[i,"smile"] = smile
-        
-        # Now read the number of atoms derived from openbabel        
-        with open("../data/xyz_openbabel/{}.xyz".format(refcode)) as f:
-            natom_obabel = f.readline().rstrip()
-            #print("natom_obabel =", natom_obabel)
-            dataframe.at[i,"Natom_obabel"] = natom_obabel
-            
-        # Now read the number of atoms derived from pymatgen        
-        with open("../data/xyz_pymatgen/{}.xyz".format(refcode)) as f:
-            natom_pymatgen = f.readline().rstrip()
-            #print("natom_pymatgen =", natom_pymatgen)
-            dataframe.at[i,"Natom_pymatgen"] = natom_pymatgen       
-            
-        if (natom_obabel != natom_pymatgen):
-            dataframe.at[i,"Match"] = "No"
-            
-            # In case openbabel fails to create the molecule (splits it into two)
-            # Use the pymatgen generated xyz to create the smile code            
-            subprocess.run(["obabel", "../data/xyz_pymatgen/{}.xyz".format(refcode), "-O", "../data/xyz_pymatgen/temp.can"])
-            f=open("../data/xyz_pymatgen/temp.can", "r")
-            smile = f.read().split()
-            smile = smile[0]
-            # But let's first make sure there is only one molecule present    
-            smile = smile.split(".")[0]
-            dataframe.at[i,"smile"] = smile
-            print(refcode, "========================")
-            print("natom_obabel =", natom_obabel)
-            print("natom_pymatgen =", natom_pymatgen)
-            print("Atoms did not match between openbabel and pymatgen")
-            print("Canonical SMILE code =",smile)
-        else:
-            dataframe.at[i,"Match"] = "-"
-            
-    return(dataframe)
-
-def get_smile_from_CSD(dataframe):
-    nbrStruc = dataframe.shape[0]
-    from ccdc import io
-    csd_reader = io.EntryReader('CSD')
-    for i in range(nbrStruc):
-        refcode = dataframe.iloc[i,0]
-        print(refcode)
-        mol = csd_reader.molecule(refcode)
-        smile= mol.smiles
-        print(smile)
-        dataframe.at[i,"smile"] = smile
-    return(dataframe)
 
 def get_molecular_features(dataframe, mol_list):
     df = dataframe

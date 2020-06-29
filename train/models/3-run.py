@@ -10,7 +10,7 @@ import torch
 import time
 from sklearn.metrics import mean_absolute_error
 ######################### INITIALIZE SOME VALUES
-end = 1000 #133885
+end = 2000 #133885
 show_plots = 0
 num_epochs = 150
 GNN = 1

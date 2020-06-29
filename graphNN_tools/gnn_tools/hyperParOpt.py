@@ -21,7 +21,6 @@ from subprocess import Popen
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 import matplotlib.pyplot as plt
-import xgboost as xgb
 from sklearn.preprocessing import StandardScaler
 #parameter_ranges = [[0.005, 0.005],[16, 16], [24, 24], [36, 36], [64, 200], [1,1], [0,4], [10, 250]]
 #nbrTrials = 50

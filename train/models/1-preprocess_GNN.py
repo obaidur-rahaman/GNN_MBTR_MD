@@ -13,7 +13,7 @@ from rdkit.Chem import PandasTools
 from rdkit import Chem
 import re
 ######################### INITIALIZE SOME VALUES
-end = 1000 #133885
+end = 2000 #133885
 
 ######################### PREPROCESS AND GENERATE DATASET
 

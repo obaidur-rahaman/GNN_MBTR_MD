@@ -12,6 +12,11 @@ INSTALLATION
 
 Follow the instructions in the README file inside graphNN_tools folder
 
+DEPENDENCIES
+Install the following packages:
+
+PyTorch, PyTorch geometric, Rdkit, pandas, matplotlib, Scipy, numpy, pickle, sklearn, collections, PyAstronomy and ase. 
+
 CREATE DATAFRAME
 
 Create a dataframe containing the SMILES codes of the molecules with column name "smiles".

@@ -23,10 +23,7 @@ from ase.build import molecule
 from ase.data.pubchem import pubchem_atoms_search, pubchem_atoms_conformer_search
 from ase import Atoms
 import re
-import tracemalloc
-import gc
 import os.path as osp
-import sparse
 
 class Build_features():
     def __init__(self, df, addH1, XYZ1, nbr_Gaussian1, NB_cutoff1):
