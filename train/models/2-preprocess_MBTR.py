@@ -20,16 +20,16 @@ mbtr_constructor = MBTR(
     species=elements,
     k1={
         "geometry": {"function": "atomic_number"},
-        "grid": {"min": 0, "max": 17, "n": 200, "sigma": 0.1},
+        "grid": {"min": 0, "max": 17, "n": 100, "sigma": 0.01},
     },
     k2={
         "geometry": {"function": "inverse_distance"},
-        "grid": {"min": 0, "max": 1, "n": 200, "sigma": 0.1},
+        "grid": {"min": 0, "max": 1, "n": 100, "sigma": 0.01},
         "weighting": {"function": "exponential", "scale": 0.5, "cutoff": 1e-3},
     },
     k3={
         "geometry": {"function": "cosine"},
-        "grid": {"min": -1, "max": 1, "n": 200, "sigma": 0.1},
+        "grid": {"min": -1, "max": 1, "n": 100, "sigma": 0.01},
         "weighting": {"function": "exponential", "scale": 0.5, "cutoff": 1e-3},
     },
     periodic=False,

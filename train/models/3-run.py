@@ -5,7 +5,7 @@ import gnn_tools as gnn
 from rdkit.Chem import Draw
 import subprocess
 import pickle
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import torch
 import time
 from sklearn.metrics import mean_absolute_error
@@ -61,6 +61,8 @@ for target_term in ['homo']: #['homo', 'lumo']:
         gnn.plot_results(trainData, testData, target_term, show = show_plots)
     
     # Now store the final result
-    MAE = mean_absolute_error(testData["Preds"].to_numpy(), testData["Target"].to_numpy())
+    MAE = round(mean_absolute_error(testData["Preds"].to_numpy(), testData["Target"].to_numpy()), 4)
+    RMSE = round(np.sqrt(mean_squared_error(testData["Preds"].to_numpy(), testData["Target"].to_numpy())), 4)
     with open("../results/all_results.txt", "a") as file_object:
-        file_object.write("%s = %s    (GNN = %s  MD = %s  MBTR = %s)\n" % (target_term, MAE, GNN, MD, MBTR))
+        file_object.write("%s = %s (%s)   (GNN = %s  MD = %s  MBTR = %s)\n" % (target_term, MAE, RMSE, GNN, MD, MBTR))
+ 
