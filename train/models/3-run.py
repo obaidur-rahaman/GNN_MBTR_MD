@@ -10,12 +10,12 @@ import torch
 import time
 from sklearn.metrics import mean_absolute_error
 ######################### INITIALIZE SOME VALUES
-end = 2000 #133885
+end = 133885
 show_plots = 0
-num_epochs = 150
+num_epochs = 80
 GNN = 1
-MD = 0
-MBTR = 0
+MD = 1
+MBTR = 1
 ######################### READ DATASET
 if (0 == MBTR):
     dataset = gnn.Make_graph_inMemory(root="../data/")
@@ -28,13 +28,13 @@ else:
 for target_term in ['homo']: #['homo', 'lumo']:
     print(target_term)       
     if ("homo" == target_term): 
-        hyper = 0
-        param_best = [0.0027, 64, 79, 89, 50, 130]
-        param_range = [[0.001, 0.01],[64, 64], [60, 100], [60, 100], [50, 50], [30,130]]
+        hyper = 1
+        param_best = [0.0027, 64, 64, 64, 50, 100]
+        param_range = [[0.001, 0.01],[64, 64], [40, 80], [40, 80], [40, 80], [40, 80]]
     elif ("lumo" == target_term):
-        hyper = 0
-        param_best = [0.007498,  32,  128,  64,  50,  100]
-        param_range = [[0.001, 0.01],[64, 64], [67, 67], [38, 38], [50, 50], [40,150]]
+        hyper = 1
+        param_best = [0.007498,  32,  64,  64,  50,  100]
+        param_range = [[0.001, 0.01],[64, 64], [40, 80], [40, 80], [40, 80], [40, 80]]
     ######################### HYPER PARAMETER OPTIMIZATION
     if ( 1 == hyper):
         # Clean the hyper data
@@ -44,7 +44,9 @@ for target_term in ['homo']: #['homo', 'lumo']:
                     pickle.dump(dataset, filehandle, protocol=4)    
         # RANDOM SEARCH
         #hyper_batch_size, target_term, dataset1, split_size, parameter_ranges, nbrTrials, nbrEpochs, MD
-        param_best, param_best_5 = gnn.fit_hyperParameters_random(1, target_term, 0.85, param_range, 10, 10, GNN, MD, MBTR)
+        param_best, param_best_5 = gnn.fit_hyperParameters_random(1, target_term, 0.85, param_range, 10, 15, GNN, MD, MBTR)
+    with open("../results/all_hyperparameters.txt", "a") as file_object:
+        file_object.write("%s = %s   (GNN = %s  MD = %s  MBTR = %s)\n" % (target_term, param_best, GNN, MD, MBTR))
     ######################### FINAL OPTIMIZATION
     print("########## ",target_term," GNN =", GNN, "MD = ",MD, "MBTR =", MBTR, "#############")
     print("Molecular Descriptor used =", MD)
