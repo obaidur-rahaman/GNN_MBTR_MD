@@ -37,7 +37,7 @@ If available, provide the XYZ coordinates with column name "xyz".
 Store the targets in seperate columns (more than one if available). List the column names of the targets in /train/data/target_terms_all.txt file. 
 Store the dataframe as df.csv in /train/data folder.
 
-PREPROCESS
+PREPROCESS (BY SPLITTING A DATASET INTO TRAIN/TEST DATASETS)
 
 Go to train/models folder
 
@@ -92,6 +92,26 @@ gnn.plot_losses(target_term, GNN, MD, MBTR)
 To plot the results run the following line:
 
 gnn.plot_results(trainData, testData, target_term, show = show_plots)
+
+
+
+
+PREPROCESS (BY TRAINING ON THE TRAIN DATASET AND THEN TESTING ON A TEST DATASET)
+
+It is also possible to train the model on the training dataset, 
+save the model and then use it to predict the targets using a test dataset
+
+For this use the models_train_test_seperately and data_train_test_seperately directories
+Keep the df_train.csv and df_test.csv in the data_train_test_seperately directory
+Go to the models_train_test_seperately directory.
+Sequentially execute the python scripts prefixed by numbers from 1 to 6.
+If MBTR is not used, you can skip 2 and 5.
+In 6-run_test.py file there is a variable testData_has_target_values.
+If you already have the target values in the test data, put a value of 1 for this variable.
+In this case you will be able to plot the results for the training and test cases 
+using the lines of in the 6-run_test.py file (similar to previous section with file 3-run.py)
+If you have a test set where you do not know the targets but want to predict them, put testData_has_target_values = 0
+In this case the predictions will be stored in the results/target directory (with names like testFinal_CNN=1_MD=1_MBTR=1.csv) 
 
 Please contact ramieor@gmail.com if you have any questions.
 

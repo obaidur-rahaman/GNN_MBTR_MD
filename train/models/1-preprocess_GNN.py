@@ -12,8 +12,9 @@ import math
 from rdkit.Chem import PandasTools
 from rdkit import Chem
 import re
+
 ######################### INITIALIZE SOME VALUES
-end = 2000 #133885
+end = 40 #133885
 
 ######################### PREPROCESS AND GENERATE DATASET
 

@@ -10,12 +10,12 @@ import torch
 import time
 from sklearn.metrics import mean_absolute_error
 ######################### INITIALIZE SOME VALUES
-end = 133885
+end = 40 #133885
 show_plots = 0
-num_epochs = 80
+num_epochs = 10
 GNN = 1
-MD = 1
-MBTR = 1
+MD = 0
+MBTR = 0
 ######################### READ DATASET
 if (0 == MBTR):
     dataset = gnn.Make_graph_inMemory(root="../data/")
@@ -28,11 +28,11 @@ else:
 for target_term in ['homo']: #['homo', 'lumo']:
     print(target_term)       
     if ("homo" == target_term): 
-        hyper = 1
+        hyper = 0
         param_best = [0.0027, 64, 64, 64, 50, 100]
         param_range = [[0.001, 0.01],[64, 64], [40, 80], [40, 80], [40, 80], [40, 80]]
     elif ("lumo" == target_term):
-        hyper = 1
+        hyper = 0
         param_best = [0.007498,  32,  64,  64,  50,  100]
         param_range = [[0.001, 0.01],[64, 64], [40, 80], [40, 80], [40, 80], [40, 80]]
     ######################### HYPER PARAMETER OPTIMIZATION

@@ -417,7 +417,7 @@ class Build_features():
                     sum_squares = [sum_squares[i] + (values_list[i] - mean_values[i])**2 for i in range(len(values_list))]
             std_values = [np.sqrt(sum_squares[i] / nbr) for i in range(len(sum_squares))]
             #print("std values for", feature, std_values)
-            
+
             # Now normalize
             print("Normalizing", feature,": step 2 = scale")
             for i, row in self.df.iterrows():

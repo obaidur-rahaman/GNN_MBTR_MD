@@ -215,8 +215,9 @@ def fit_GNN(getloss1, verbose1, target_term1, dataset, split_size, num_epochs1, 
                     val_err_last = val_acc
                     '''
                     break       
-        #print(df_loss)        
-    
+        #print(df_loss) 
+    with open('../data_train_test_seprately/model.pic', 'wb') as b:
+        pickle.dump(model,b)       
     if (0 == getloss):  
         trainData, testData = get_results(train_loader, test_loader)
         return(trainData, testData)
@@ -229,6 +230,11 @@ def fit_GNN(getloss1, verbose1, target_term1, dataset, split_size, num_epochs1, 
 class Net(torch.nn.Module):
     def __init__(self):
         super(Net, self).__init__()
+        self.GNN = GNN
+        self.MD = MD
+        self.MBTR = MBTR
+        self.nbrGlobalFeatures = nbrGlobalFeatures
+        self.nbrMBTRFeatures = nbrMBTRFeatures
         '''
         nn (torch.nn.Module) – A neural network ℎ𝚯 that maps edge features 
         edge_attr of shape [-1, num_edge_features] to 
@@ -236,7 +242,7 @@ class Net(torch.nn.Module):
         defined by torch.nn.Sequential.
         '''   
         totNbrFeatures = 0  
-        if (1 == GNN): 
+        if (1 == self.GNN): 
             totNbrFeatures += p2*2
             self.lin0 = torch.nn.Linear(nbr_node_features, p2, bias = False)
             self.BN0 = BN(round(p2))
@@ -246,14 +252,14 @@ class Net(torch.nn.Module):
             self.set2set = Set2Set(p2, processing_steps=3)    
             #print("nbrGlobalFeatures =", nbrGlobalFeatures,"nbrMBTRFeatures =", nbrMBTRFeatures)        
             self.gru = GRU(p2, p2)       
-        if (1 == MD):
+        if (1 == self.MD):
             totNbrFeatures += p_md
-            self.lin_MD = torch.nn.Linear(nbrGlobalFeatures, 4 * p_md)
+            self.lin_MD = torch.nn.Linear(self.nbrGlobalFeatures, 4 * p_md)
             self.lin_MD2 = torch.nn.Linear(4 * p_md, 2 * p_md)
             self.lin_MD3 = torch.nn.Linear(2 * p_md, p_md)
-        if (1 == MBTR):
+        if (1 == self.MBTR):
             totNbrFeatures += p_mbtr
-            self.lin_MBTR = torch.nn.Linear(nbrMBTRFeatures, 4 * p_mbtr, bias = False)
+            self.lin_MBTR = torch.nn.Linear(self.nbrMBTRFeatures, 4 * p_mbtr, bias = False)
             self.BN_MBTR1 = BN(4 * p_mbtr)
             self.lin_MBTR2 = torch.nn.Linear(4 * p_mbtr, 2 * p_mbtr, bias = False)
             self.BN_MBTR2 = BN(2 * p_mbtr) 
@@ -267,7 +273,7 @@ class Net(torch.nn.Module):
         
     def forward(self, data):
         y = None
-        if (1 == GNN):
+        if (1 == self.GNN):
             x, edge_index, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
             out = F.leaky_relu(self.BN0(self.lin0(x)))
             h = out.unsqueeze(0)
@@ -280,9 +286,9 @@ class Net(torch.nn.Module):
             y_gnn = self.set2set(out, batch)  
             y = y_gnn
         # Check if there are any global features         
-        if (1 == MD):
+        if (1 == self.MD):
             y_md = data.u
-            y_md = y_md.reshape(-1, nbrGlobalFeatures)
+            y_md = y_md.reshape(-1, self.nbrGlobalFeatures)
             y_md = F.leaky_relu(self.lin_MD(y_md))
             y_md = F.leaky_relu(self.lin_MD2(y_md))
             y_md = F.leaky_relu(self.lin_MD3(y_md))
@@ -292,10 +298,10 @@ class Net(torch.nn.Module):
                 y = torch.cat((y, y_md), 1)
         #print("1. size of y =", y.size())
         # Check if there are any MBTR features         
-        if (1 == MBTR):
+        if (1 == self.MBTR):
             y_mbtr = data.mbtr
             y_mbtr[y_mbtr != y_mbtr] = 0
-            y_mbtr = y_mbtr.reshape(-1, nbrMBTRFeatures)
+            y_mbtr = y_mbtr.reshape(-1, self.nbrMBTRFeatures)
             y_mbtr = F.leaky_relu(self.BN_MBTR1(self.lin_MBTR(y_mbtr)))
             y_mbtr = F.leaky_relu(self.BN_MBTR2(self.lin_MBTR2(y_mbtr)))
             y_mbtr = F.leaky_relu(self.BN_MBTR3(self.lin_MBTR3(y_mbtr)))
