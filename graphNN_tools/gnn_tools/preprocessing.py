@@ -15,9 +15,9 @@ import gnn_tools as gnn
 import time
 import re
 
-def preprocessData(df, end): 
-         
-    df = shuffle(df)
+def preprocessData(df, end, shuffle1): 
+    if (1 == shuffle1):
+        df = shuffle(df)  
     df = df.reset_index(drop=True)
     df = df[:end]    
     df_reduced, mol_list, legends = get_molecules(df)

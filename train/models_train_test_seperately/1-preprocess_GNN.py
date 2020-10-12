@@ -19,7 +19,7 @@ end = 2000 #133885
 ######################### PREPROCESS AND GENERATE DATASET
 
 df = pd.read_csv("../data_train_test_seprately/df_train.csv")
-df_reduced, mol_list = gnn.preprocessData(df, end)
+df_reduced, mol_list = gnn.preprocessData(df, end, 1) # dataframe, end, shuffle
 # In case XYZ coordinates are not available, they can be generated
 if 'xyz' not in df:
     print("XYZ coordinates do not exist. Creating from SMILES.")

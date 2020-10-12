@@ -103,14 +103,17 @@ def fit_GNN(getloss1, verbose1, target_term1, dataset, split_size, num_epochs1, 
         y_std = y_values.std()   
 
     if (1 == MBTR):
-        train_dataset,test_val_dataset = torch.utils.data.random_split(dataset,(l1,(nbrSample-l1)))
-        val_dataset, test_dataset = torch.utils.data.random_split(test_val_dataset,((l2-l1),(nbrSample-l2)))
+        train_dataset = torch.utils.data.Subset(dataset, list(range(0,l1)))
+        val_dataset = torch.utils.data.Subset(dataset, list(range(l1, l2)))
+        test_dataset = torch.utils.data.Subset(dataset, list(range(l2, len(dataset))))
+        #train_dataset,test_val_dataset = torch.utils.data.random_split(dataset,(l1,(nbrSample-l1)))
+        #val_dataset, test_dataset = torch.utils.data.random_split(test_val_dataset,((l2-l1),(nbrSample-l2)))
     else:
         train_dataset = dataset[:l1]
         val_dataset = dataset[l1:l2]
         test_dataset = dataset[l2:]
 
-    len(train_dataset), len(val_dataset)    
+    print("TrainsetSize = ", len(train_dataset), "ValidationsetSize = ", len(val_dataset), "TestsetSize = ", len(test_dataset))    
             
     #Now setup the dataloader
     
@@ -309,7 +312,7 @@ class Net(torch.nn.Module):
                 y = y_mbtr
             else:
                 y = torch.cat((y, y_mbtr), 1)
- 
+        y = F.dropout(y, p = 0.5, training=self.training)
         y = F.leaky_relu(self.lin1(y)) 
         y = F.leaky_relu(self.lin2(y))
         y = self.lin_final(y)

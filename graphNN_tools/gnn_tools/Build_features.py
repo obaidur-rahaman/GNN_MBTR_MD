@@ -59,7 +59,10 @@ class Build_features():
                 mol = Chem.AddHs(mol)
             print("Getting features for mol =", i, "refcode =", df.at[i,"refcode_csd"])
             df.at[i,"x"], x_sum, x_nbrAtoms = self.get_node_features(mol)
-            df.at[i,"edge_index"],  df.at[i,"edge_attr"], edge_attr_sum, edge_attr_nbrBonds = self.get_edge_features(mol, i)
+            if (1 == XYZ):
+                df.at[i,"edge_index"],  df.at[i,"edge_attr"], edge_attr_sum, edge_attr_nbrBonds = self.get_edge_features(mol, i)
+            else:
+                df.at[i,"edge_index"],  df.at[i,"edge_attr"], df.at[i,"xyz"], edge_attr_sum, edge_attr_nbrBonds = self.get_edge_features(mol, i)
             df.at[i,"u"] = self.get_global_features(mol)
             x_sum_all = x_sum
             x_nbrAtoms_all = x_nbrAtoms
@@ -276,8 +279,12 @@ class Build_features():
         edge_index = torch.tensor([ind1,ind2], dtype=torch.long)
         edge_attr =  bond_type + edge_attr
         edge_attr = np.array(edge_attr).T
-
-        return(edge_index, edge_attr, edge_attr.sum(axis=0), len(edge_attr))
+        if (1 == XYZ):
+            return(edge_index, edge_attr, edge_attr.sum(axis=0), len(edge_attr))
+        else:
+            xyz = Chem.rdmolfiles.MolToXYZBlock(mol)
+            #print(xyz)
+            return(edge_index, edge_attr, xyz, edge_attr.sum(axis=0), len(edge_attr))
 
     def Gaussian_distance(self, dist, nbr_Gaussian):
         mu = np.linspace(0, 5, nbr_Gaussian)
@@ -304,9 +311,9 @@ class Build_features():
         MinAbsPartialCharge = Descriptors.MinAbsPartialCharge(mol)
         MinPartialCharge = Descriptors.MinPartialCharge(mol)
         '''
-        FpDensityMorgan1 = Descriptors.FpDensityMorgan1(mol)
-        FpDensityMorgan2 = Descriptors.FpDensityMorgan2(mol)
-        FpDensityMorgan3 = Descriptors.FpDensityMorgan3(mol)
+#        FpDensityMorgan1 = Descriptors.FpDensityMorgan1(mol)
+#        FpDensityMorgan2 = Descriptors.FpDensityMorgan2(mol)
+#        FpDensityMorgan3 = Descriptors.FpDensityMorgan3(mol)
         
         # Get some features using chemical feature factory
         
@@ -352,8 +359,8 @@ class Build_features():
                             rdm.CalcNumSaturatedRings(mol), rdm.CalcNumSpiroAtoms(mol), rdm.CalcTPSA(mol)]
         
         
-        u = [natoms, nbonds, mw, HeavyAtomMolWt, NumValenceElectrons, FpDensityMorgan1, FpDensityMorgan2, \
-            FpDensityMorgan3, nbrAcceptor, nbrDonor, nbrHydrophobe, nbrLumpedHydrophobe, \
+        u = [natoms, nbonds, mw, HeavyAtomMolWt, NumValenceElectrons, \
+            nbrAcceptor, nbrDonor, nbrHydrophobe, nbrLumpedHydrophobe, \
             nbrPosIonizable, nbrNegIonizable]
 
         u = u + moreGlobalFeatures    
@@ -417,7 +424,7 @@ class Build_features():
                     sum_squares = [sum_squares[i] + (values_list[i] - mean_values[i])**2 for i in range(len(values_list))]
             std_values = [np.sqrt(sum_squares[i] / nbr) for i in range(len(sum_squares))]
             #print("std values for", feature, std_values)
-
+            
             # Now normalize
             print("Normalizing", feature,": step 2 = scale")
             for i, row in self.df.iterrows():
