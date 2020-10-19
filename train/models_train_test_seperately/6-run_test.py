@@ -9,6 +9,8 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import torch
 import time
 from sklearn.metrics import mean_absolute_error
+import warnings
+warnings.filterwarnings('ignore')
 ######################### INITIALIZE SOME VALUES
 end = 1000 #133885
 show_plots = 0

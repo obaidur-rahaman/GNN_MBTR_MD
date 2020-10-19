@@ -63,6 +63,7 @@ def fit_GNN(getloss1, verbose1, target_term1, dataset, split_size, num_epochs1, 
     
     l1 = int(round(nbrSample*split_size))
     l2 = int(round(nbrSample*(0.5*(1 + split_size))))
+    print("l1 = ", l1, "l2 = ", l2)
     epoch_early_stop = 70   
     
     if (0 == getloss):
