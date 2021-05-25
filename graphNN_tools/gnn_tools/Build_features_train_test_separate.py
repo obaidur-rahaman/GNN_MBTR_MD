@@ -24,13 +24,32 @@ from ase.data.pubchem import pubchem_atoms_search, pubchem_atoms_conformer_searc
 from ase import Atoms
 import re
 import os.path as osp
+import sys
 
 class Build_features_train_test_separate():
-    def __init__(self, df, addH1, XYZ1, nbr_Gaussian1, NB_cutoff1):
+    def __init__(self, df, addH1, XYZ1, nbr_Gaussian1, NB_cutoff1, called_first_time):
         global addH, XYZ, nbr_Gaussian, NB_cutoff
         self.df = df
         addH = addH1
-        atomicNbrs, elements, values = self.getAtomicDist(self.df)
+        if called_first_time == 1:
+            atomicNbrs, elements, values = self.getAtomicDist(self.df)
+            original_stdout = sys.stdout
+            with open('elements.txt', 'w') as f:
+                sys.stdout = f # Change the standard output to the file we created.
+                print(atomicNbrs)
+                print(elements)
+                print(values)
+                sys.stdout = original_stdout
+            with open('atomicNbrs.pic', 'wb') as b:
+                pickle.dump(atomicNbrs,b)
+            with open('elements.pic', 'wb') as b:
+                pickle.dump(elements,b)
+        else:
+            with open('atomicNbrs.pic', 'rb') as f:
+                atomicNbrs = pickle.load(f)
+            with open('elements.pic', 'rb') as f:
+                elements = pickle.load(f)
+
         self.atomicNbrs = atomicNbrs
         self.elements = elements 
         self.x_mean = []
@@ -452,12 +471,24 @@ class Build_features_train_test_separate():
         if ('x' == feature) or ('edge_attr' == feature):           
             # Now normalize
             print("Normalizing", feature,": step 2 = scale")
+            #print("mean values =", mean_values)
+            #print("std values =", std_values)
+            #print("df =", self.df)
             for i, row in self.df.iterrows():
+                #print("i =", i)
+                #print("row =", row)
+                #print("row[feature] =", row[feature])
+                #print("len(row[feature]) =", len(row[feature]))
                 scaled_values_all = []
                 # Do this for all the atoms in the molecule
                 for k in range(len(row[feature])):
-                    values_list = row[feature][k]                   
-                    scaled_values = [(values_list[i] - mean_values[i])/std_values[i] for i in range(len(values_list))]                   
+                    values_list = row[feature][k] 
+                    #print("values_list =", values_list)  
+                    #print("mean_values[i] =", mean_values[i])
+                    #print("std_values[i] =", std_values[i])  
+                    #print("len(values_list) =", len(values_list))
+                    #for r in range()             
+                    scaled_values = [(values_list[j] - mean_values[j])/std_values[j] for j in range(len(values_list))]                   
                     scaled_values_all.append(scaled_values)
                 #print("-----------------------")
                 #print(scaled_values_all)
