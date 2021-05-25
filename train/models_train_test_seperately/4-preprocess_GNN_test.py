@@ -5,56 +5,75 @@ import gnn_tools as gnn
 from rdkit.Chem import Draw
 import subprocess
 import pickle
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-import torch
+from sklearn.metrics import mean_absolute_error, r2_score
 import time
-from sklearn.metrics import mean_absolute_error
-import warnings
-warnings.filterwarnings('ignore')
+import gc
+import math
+from rdkit.Chem import PandasTools
+from rdkit import Chem
+import re
+
 ######################### INITIALIZE SOME VALUES
-end = 1000
-show_plots = 0
-GNN = 1
-MD = 1
-MBTR = 0
-batch_size = 64
-testData_has_target_values = 1
-######################### READ DATASET
-if (0 == MBTR):
-    dataset = gnn.Make_graph_inMemory(root="../data_train_test_seprately/")
-    dataset = dataset[:end]
-    original_stdout = sys.stdout
-    with open('check_x_dim.txt', 'a') as f:
-        sys.stdout = f # Change the standard output to the file we created.
-        print("Output from 4-preprocess_GNN_test.py")
-        print("dataset.x[0] =", dataset[0].x.shape)
-        print("dataset.x[0] =", dataset[1].x.shape)
-        print("dataset.x[0] =", dataset[2].x.shape)
-        sys.stdout = original_stdout
-else:
-    with open("../data_train_test_seprately/processed_normal/dataset.pic", 'rb') as filehandle:
-        dataset = pickle.load(filehandle)
-    dataset, temp = torch.utils.data.random_split(dataset,(end,(len(dataset)-end)))
-######################### SET UP INITIAL PARAMETERS
-for target_term in ['water']: #['homo', 'lumo']:
-    print(target_term)       
-    
-    ######################### FINAL OPTIMIZATION
-    print("########## ",target_term," GNN =", GNN, "MD = ",MD, "MBTR =", MBTR, "#############")
-    print("Molecular Descriptor used =", MD)
-    # getloss, verbose, target_term, dataset, split_size, num_epochs, lr, batch_size,  p1, p2, numLayer, numFinalFeature, GNN, MD, MBTI
-    testData = gnn.evaluate_GNN(0, 1, target_term, dataset, 0.95, batch_size, GNN, MD, MBTR, testData_has_target_values)
-    print("Length of testData", len(testData))
-    testData.to_csv("../results/%s/testFinal_CNN=%s_MD=%s_MBTR=%s.csv" % (target_term, GNN, MD, MBTR))
+end = 4060
 
-    if (testData_has_target_values == 1):  
-        trainData = pd.read_csv("../results/%s/train_CNN=%s_MD=%s_MBTR=%s.csv" % (target_term, GNN, MD, MBTR))
-        gnn.plot_results(trainData, testData, target_term, show = show_plots)
-        
-        # Now store the final result
-        MAE = round(mean_absolute_error(testData["Preds"].to_numpy(), testData["Target"].to_numpy()), 4)
-        RMSE = round(np.sqrt(mean_squared_error(testData["Preds"].to_numpy(), testData["Target"].to_numpy())), 4)
-        with open("../results/all_results.txt", "a") as file_object:
-            file_object.write("%s = %s (%s)   (GNN = %s  MD = %s  MBTR = %s)\n" % (target_term, MAE, RMSE, GNN, MD, MBTR))
+######################### PREPROCESS AND GENERATE DATASET
 
+#df = pd.read_csv("../data_train_test_seprately/df_test.csv")
+#df = df.drop(['xyz'], axis=1)
+#df = df[["smiles","refcode_csd","homo"]]
+#'''
+df = pd.read_csv("../data_train_test_seprately/test_wt.csv")
+df = df.reset_index()
+df["refcode_csd"] = df["SMILES"]
+df["smiles"] = df["SMILES"]
+df["water"]= df["ln(gamma)_water"]
+df = df[["smiles","refcode_csd","water"]]
+#'''
+df_reduced, mol_list = gnn.preprocessData(df, end, 1) #df, end, shuffle
+# In case XYZ coordinates are not available, they can be generated
+if 'xyz' not in df:
+    print("XYZ coordinates do not exist. Creating from SMILES.")
+    df_reduced, mol_list = gnn.createXYZ_from_SMILES(df_reduced, mol_list)
+
+df_reduced.to_pickle("../data_train_test_seprately/df_reduced1.pic")
+with open("../data_train_test_seprately/mol_list", "wb") as fp:
+    pickle.dump(mol_list, fp)
+
+
+df_reduced = pd.read_pickle("../data_train_test_seprately/df_reduced1.pic")
+with open("../data_train_test_seprately/mol_list", 'rb') as f:
+    mol_list = pickle.load(f)
+
+subprocess.run(["rm", "-r", "../data_train_test_seprately/processed"])
+bf = gnn.Build_features_train_test_separate(df_reduced, 1, 1, 20, 5, 0)  # df, addH, XYZ, nbr_Gaussian, NB_cutoff, called first time
+df_reduced = bf.get_all_features(df_reduced, mol_list)
+
+# Normalize features
+# First open the mean and std that were calculated from the training set
+
+with open("../data_train_test_seprately/mean_values_x.pic", 'rb') as f:
+    mean_values_x = pickle.load(f)
+with open("../data_train_test_seprately/mean_values_edge.pic", 'rb') as f:
+    mean_values_edge = pickle.load(f)
+with open("../data_train_test_seprately/std_values_x.pic", 'rb') as f:
+    std_values_x = pickle.load(f)
+with open("../data_train_test_seprately/std_values_edge.pic", 'rb') as f:
+    std_values_edge = pickle.load(f)
+with open("../data_train_test_seprately/min_max_scaler.pic", 'rb') as f:
+    min_max_scaler = pickle.load(f)
+
+print(mean_values_x)
+df_reduced  = bf.normalize_featuresTest('x', mean_values_x, std_values_x, min_max_scaler)  
+df_reduced  = bf.normalize_featuresTest('edge_attr', mean_values_edge, std_values_edge, min_max_scaler)
+df_reduced  = bf.normalize_featuresTest('u', mean_values_x, std_values_x, min_max_scaler)
+
+df_reduced.to_pickle("../data/df_reduced2.pic")
+
+
+
+
+
+
+
+ 
 
