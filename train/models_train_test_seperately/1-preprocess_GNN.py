@@ -35,7 +35,7 @@ with open("../data_train_test_seprately/mol_list", 'rb') as f:
     mol_list = pickle.load(f)
 
 subprocess.run(["rm", "-r", "../data_train_test_seprately/processed"])
-bf = gnn.Build_features_train_test_separate(df_reduced, 1, 1, 20, 5)  # df, addH, XYZ, nbr_Gaussian, NB_cutoff
+bf = gnn.Build_features_train_test_separate(df_reduced, 1, 1, 20, 5, 1)  # df, addH, XYZ, nbr_Gaussian, NB_cutoff, called first time
 df_reduced = bf.get_all_features(df_reduced, mol_list)
 
 # Normalize features
