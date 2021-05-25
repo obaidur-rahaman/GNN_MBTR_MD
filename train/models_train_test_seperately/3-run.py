@@ -10,24 +10,32 @@ import torch
 import time
 from sklearn.metrics import mean_absolute_error
 ######################### INITIALIZE SOME VALUES
-end = 1000 #133885
+end = 5000 #35000
 show_plots = 0
-num_epochs = 20
+num_epochs = 30 #100
 GNN = 1
 MD = 1
-MBTR = 1
+MBTR = 0
 ######################### READ DATASET
 if (0 == MBTR):
     dataset = gnn.Make_graph_inMemory(root="../data_train_test_seprately/")
     dataset = dataset[:end]
+    original_stdout = sys.stdout
+    with open('check_x_dim.txt', 'w') as f:
+        sys.stdout = f # Change the standard output to the file we created.
+        print("Output from 3-run.py")
+        print("dataset.x[0] =", dataset[0].x.shape)
+        print("dataset.x[0] =", dataset[1].x.shape)
+        print("dataset.x[0] =", dataset[2].x.shape)
+        sys.stdout = original_stdout
 else:
     with open("../data_train_test_seprately/processed_normal/dataset.pic", 'rb') as filehandle:
         dataset = pickle.load(filehandle)
     dataset, temp = torch.utils.data.random_split(dataset,(end,(len(dataset)-end)))
 ######################### SET UP INITIAL PARAMETERS
-for target_term in ['homo']: #['homo', 'lumo']:
+for target_term in ['water']: #['homo', 'lumo']:
     print(target_term)       
-    if ("homo" == target_term): 
+    if ("water" == target_term): 
         hyper = 0
         param_best = [0.0027, 64, 64, 64, 50, 100]
         param_range = [[0.001, 0.01],[64, 64], [40, 80], [40, 80], [40, 80], [40, 80]]
