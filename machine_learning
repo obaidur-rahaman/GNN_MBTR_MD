@@ -1,0 +1,132 @@
+
+import pandas as pd
+import numpy as np
+import xgboost as xgb
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
+import matplotlib.pyplot as plt 
+from sklearn.preprocessing import StandardScaler
+import math
+from sklearn.linear_model import Ridge, RidgeCV, ElasticNet, LassoCV, LassoLarsCV
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.kernel_ridge import KernelRidge
+
+df =  pd.read_csv("name", sep='\t') 
+
+df = df.dropna(axis=1, how='all')
+df = df.fillna(df.mean())
+
+# Check if the taget is a number
+df = df[df['LV10'].apply(lambda x: str(x).isdigit())]
+
+# Remove outliers
+if ('DISPERCOLL_U_56' == output_name):
+    df = df[df["LV10"].astype('float') > 27.0]
+    df = df[df["LV10"].astype('float') < 60.0]
+
+if ('Impranil_DLU' == output_name):
+    df = df[df["LV10"].astype('float') < 650000.0]
+
+X = df.drop(['Charge Number', 'LV10'], axis=1).to_numpy()    
+X = StandardScaler().fit_transform(X)
+y = df["LV10"].astype('float')
+#y = np.log(y)
+
+################# Split the data into training and validation set (test=validation in this case)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=423)
+
+######## Some useful functions
+
+def rmse_cv(model):
+    rmse= np.sqrt(-cross_val_score(model,X_train, y_train, scoring="neg_mean_squared_error", cv = 5))
+    return(rmse)
+
+# Try a linear model: Ridge regression
+'''
+model_ridge = Ridge()
+alphas = [10, 25, 50, 100, 200, 500, 1000]
+cv_ridge = [rmse_cv(Ridge(alpha = alpha)).mean() 
+           for alpha in alphas]
+    
+cv_ridge = pd.Series(cv_ridge, index = alphas)
+cv_ridge.plot(title = "Validation - Just Do It")
+plt.xlabel("alpha")
+plt.ylabel("rmse")
+#Added log scale to have a better view of the minimum
+plt.xscale("log")
+plt.show()
+print("The min value of Ridge is ",cv_ridge.min())
+
+
+#Choose the best alpha by taking the alpha that give the lowest rmse
+best_alpha = alphas[cv_ridge.to_list().index(min(cv_ridge.to_list()))]
+# Now fit Ridge model
+model_ridge = Ridge(alpha = best_alpha).fit(X_train, y_train)
+
+y_pred = model_ridge.predict(X_test)
+plt.rcParams["figure.figsize"] = (15,8)
+plt.scatter(y_test,y_pred)
+'''
+if len(df) > 100:
+    ########################### Try a non linear model: Kernel Ridge regression
+
+    model_ridge = KernelRidge()
+    alphas = [0.0001, 0.00025, 0.00075, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 0.75, 1.0, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2.0]
+    cv_ridge = [rmse_cv(KernelRidge(kernel = 'rbf', gamma = 0.00005, alpha = alpha)).mean() 
+            for alpha in alphas]
+        
+    cv_ridge = pd.Series(cv_ridge, index = alphas)
+    cv_ridge.plot(title = "Validation - Just Do It")
+    plt.xlabel("alpha")
+    plt.ylabel("rmse")
+    #Added log scale to have a better view of the minimum
+    plt.xscale("log")
+    plt.show()
+    print("The min value of Ridge is ",cv_ridge.min())
+
+    #Choose the best alpha by taking the alpha that give the lowest rmse
+    best_alpha = alphas[cv_ridge.to_list().index(min(cv_ridge.to_list()))]
+    # Now fit Ridge model
+    model_ridge = KernelRidge(kernel = 'rbf', gamma = 0.00005, alpha = best_alpha).fit(X_train, y_train)
+
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, make_scorer
+    y_pred = model_ridge.predict(X_train)
+    plt.rcParams["figure.figsize"] = (10,8)
+    plt.scatter(y_train,y_pred)
+
+    limits = [(min(np.min(y_train), np.min(y_pred))) , max(0, (np.max(y_train)), (np.max(y_pred)))]
+    infotext = "MAE = {:.3f}\n".format(mean_absolute_error(y_train, y_pred)) + r"$r^2$ = {:.3f}".format(r2_score(y_train, y_pred))
+    plt.text(limits[0], limits[1], infotext, fontsize = 20, bbox={"facecolor": "lightblue", "pad": 5})
+
+    #  TEST SET
+    y_pred = model_ridge.predict(X_test)
+    plt.rcParams["figure.figsize"] = (10,8)
+    plt.scatter(y_test,y_pred)
+    infotext = "MAE = {:.3f}\n".format(mean_absolute_error(y_test, y_pred)) + r"$r^2$ = {:.3f}".format(r2_score(y_test, y_pred))
+    plt.text(limits[0], limits[1] - 50000, infotext, fontsize = 20, bbox={"facecolor": "orange", "pad": 5})
+
+else:
+# Try XGBOOST
+
+    xgb_model = RandomForestRegressor(max_depth=2, n_estimators=1000 , random_state=0)
+
+    xgb_model.fit(X_train, y_train)
+
+    y_pred = xgb_model.predict(X_train)
+    plt.rcParams["figure.figsize"] = (8,8)
+    plt.scatter(y_train,y_pred)
+    limits = [(min(np.min(y_train), np.min(y_pred))) , max(0, (np.max(y_train)), (np.max(y_pred)))]
+    infotext = "MAE = {:.3f}\n".format(mean_absolute_error(y_train, y_pred)) + r"$r^2$ = {:.3f}".format(r2_score(y_train, y_pred))
+    plt.text(limits[0], limits[1], infotext, fontsize = 20, bbox={"facecolor": "lightblue", "pad": 5})
+    
+
+    #  TEST SET
+    y_pred = xgb_model.predict(X_test)
+    plt.rcParams["figure.figsize"] = (8,8)
+    plt.scatter(y_test,y_pred)
+    infotext = "MAE = {:.3f}\n".format(mean_absolute_error(y_test, y_pred)) + r"$r^2$ = {:.3f}".format(r2_score(y_test, y_pred))
+    plt.text(limits[0], limits[1] - 4, infotext, fontsize = 20, bbox={"facecolor": "orange", "pad": 5})
+    plt.xlim(limits[0], limits[1])
+    plt.ylim(limits[0], limits[1])
