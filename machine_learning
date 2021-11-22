@@ -17,20 +17,9 @@ df =  pd.read_csv("name", sep='\t')
 df = df.dropna(axis=1, how='all')
 df = df.fillna(df.mean())
 
-# Check if the taget is a number
-df = df[df['LV10'].apply(lambda x: str(x).isdigit())]
-
-# Remove outliers
-if ('DISPERCOLL_U_56' == output_name):
-    df = df[df["LV10"].astype('float') > 27.0]
-    df = df[df["LV10"].astype('float') < 60.0]
-
-if ('Impranil_DLU' == output_name):
-    df = df[df["LV10"].astype('float') < 650000.0]
-
-X = df.drop(['Charge Number', 'LV10'], axis=1).to_numpy()    
+X = df.drop(['target'], axis=1).to_numpy()    
 X = StandardScaler().fit_transform(X)
-y = df["LV10"].astype('float')
+y = df["target"].astype('float')
 #y = np.log(y)
 
 ################# Split the data into training and validation set (test=validation in this case)
