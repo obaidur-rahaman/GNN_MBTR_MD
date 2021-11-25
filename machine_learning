@@ -89,7 +89,7 @@ if len(df) > 100:
     infotext = "MAE = {:.3f}\n".format(mean_absolute_error(y_train, y_pred)) + r"$r^2$ = {:.3f}".format(r2_score(y_train, y_pred))
     plt.text(limits[0], limits[1], infotext, fontsize = 20, bbox={"facecolor": "lightblue", "pad": 5})
     plt.xlabel("Experimental", fontsize=20)
-    plt.xlabel("Machine learning", fontsize=20)
+    plt.ylabel("Machine learning", fontsize=20)
 
     #  TEST SET
     y_pred = model_ridge.predict(X_test)
@@ -112,7 +112,7 @@ else:
     infotext = "MAE = {:.3f}\n".format(mean_absolute_error(y_train, y_pred)) + r"$r^2$ = {:.3f}".format(r2_score(y_train, y_pred))
     plt.text(limits[0], limits[1], infotext, fontsize = 20, bbox={"facecolor": "lightblue", "pad": 5})
     plt.xlabel("Experimental", fontsize=20)
-    plt.xlabel("Machine learning", fontsize=20)
+    plt.ylabel("Machine learning", fontsize=20)
     
 
     #  TEST SET
